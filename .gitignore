@@ -4,3 +4,10 @@ images_from_cuillin
 
 # Files
 *.pdf
+*.dat
+*.png
+
+# Some specific things
+slurm-*
+run_log
+__pycache__
