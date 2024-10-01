@@ -1,4 +1,4 @@
-#file, fig, row, col, x, y, z, m_d, stokes
+file, fig, row, col, x, y, z, m_d, stokes
 pslice15_ml.dat, 2, 0, 0, 1, 1, 0, 0.0, 0.01-100
 pslice15_ml.dat, 2, 0, 1, 1, 0, 1, 0.0, 0.01-100
 pslice15_ml.dat, 4, 0, 0, 1, 1, 0, 0.0, 0.01-0.1
