@@ -58,7 +58,7 @@ def compute_com_densities(com_coords, raw_coords, clump_rad, dr):
 
     # Compute particle counts and densities per radial bin
     for i in range(len(clump_rad)):
-        numpart[i] = np.sum(distances < clump_rad[i])
+        numpart[i] = int(np.sum(distances < clump_rad[i]))
         shell_volume = (4.0 / 3.0) * np.pi * (clump_rad[i]**3 - (clump_rad[i] - dr)**3)
         if i == 0:
             clump_dens[i] = numpart[i] * m_part / shell_volume
@@ -117,7 +117,7 @@ class analysis_plot:
     """
     Class containing analysis plots
     """
-    def __init__(self, clump_rad, clump_dens, numpart, sorted_distances):
+    def __init__(self, clump_rad, clump_dens, numpart, sorted_distances, xlim):
         """
         Initialise class
         In:
@@ -133,7 +133,7 @@ class analysis_plot:
         self.sorted_distances = sorted_distances
 
         # Masking
-        self.xlim = 2e-4
+        self.xlim = xlim
         mask1 = (self.clump_rad < self.xlim)
         self.masked_clump_rad = self.clump_rad[mask1]
         self.masked_numpart = self.numpart[mask1]
@@ -211,7 +211,7 @@ def R_H(M_c, Omega, G):
     return (M_c / (3 * Omega**2) * G)**(1/3)
 
 def find_R_Hs(numpart, Omega, G):
-    return [R_H(part*m_part, Omega, G) for part in numpart]
+    return np.array([R_H(part*m_part, Omega, G) for part in numpart])
 
 def Toomre_Q(c_s, kappa, G, Sigma):
     return (c_s * kappa) / (np.pi * G * Sigma)
