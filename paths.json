@@ -1,5 +1,5 @@
 {
     "path_data": "./data/",
     "path_out": "./output/",
-    "path_ranked": "./output/ranked/",
+    "path_ranked": "./output/ranked/"
 }
