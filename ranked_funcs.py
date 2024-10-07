@@ -1,3 +1,4 @@
+# Functions for ranking particles based on their distance to the n-th nearest neighbor
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -46,7 +47,7 @@ def rank_neighbours(data_all, path_psliceout, path_ranked, n_neighbors):
     # Access data
     print("(kD search) Accessing  data:", flush=True)
     start = time()
-    particles = data_all[path_psliceout]['raw_coords']
+    particles = data_all[fstring]['raw_coords']
     print(f"\t\t{time() - start} s.", flush=True)
 
     # Construct the k-d tree
