@@ -11,3 +11,4 @@ images_from_cuillin
 slurm-*
 run_log
 __pycache__
+.DS_Store
