@@ -1,6 +1,7 @@
 # General functions for data loading and processing
 import pandas as pd
 import glob
+import inspect
 import json
 import os
 
@@ -15,15 +16,18 @@ def load_paths_all(path_paths):
     Out:
         > dict_paths - (dct) dictionary containing all paths
     """
+    # Report function name
+    print(report_function_name(), flush=True)
+
     # Load paths
-    print("(gen_funcs.load_paths_all) Reading paths", flush=True)
+    print("\tReading paths", flush=True)
     with open(path_paths, "r") as f:
         dict_paths = json.load(f)
     
     # Check that paths exist, if not, create them
     for key in dict_paths:
         if not os.path.exists(dict_paths[key]):
-            print(f"(gen_funcs.load_paths_all) Creating directory {dict_paths[key]}", flush=True)
+            print(f"\t\tCreating directory {dict_paths[key]}", flush=True)
             os.makedirs(dict_paths[key])
     return dict_paths
 
@@ -51,18 +55,21 @@ def iteratively_load_data(paths_psliceout):
     Out:
         > data_all - (dct) dictionary containing all data
     """
-    print("(gen_funcs.iteratively_load_data) Loading data", flush=True)
+    # Report function name
+    print(report_function_name(), flush=True)
+
+    # Load data
+    print("\tLoading data", flush=True)
     data_all = {}
     for key in paths_psliceout:
         for path in paths_psliceout[key]:
-            print(f"(gen_funcs.iteratively_load_data) Checking if data has already been read into memory", flush=True)
             sub_key = path.split("/")[-1].strip(".dat")
             try:
                 data_all[sub_key]
-                print(f"(gen_funcs.iteratively_load_data) Data already read for {path}. Skipping.", flush=True)
+                print(f"\t\tData already read for {path}. Skipping.", flush=True)
                 continue
             except KeyError:
-                print(f"(gen_funcs.iteratively_load_data) Loading file {path}", flush=True)
+                print(f"\t\tLoading file {path}", flush=True)
                 data_all[sub_key] = load_psliceout(path)
     return data_all
 
@@ -99,11 +106,27 @@ def iteratively_rank_neighbors(data_all, paths_psliceout, path_ranked, n_neighbo
     Out:
         > fout_ranked - (dct) dictionary containing paths to ranked files
     """
-    print("(gen_funcs.iteratively_rank_neighbors) Ranking particles", flush=True)
+    # Report function name
+    print(report_function_name(), flush=True)
+
+    # Rank particles
+    print("\tRanking particles", flush=True)
     fout_ranked = {}
     for key in paths_psliceout:
         fout_ranked[key] = []
         for path in paths_psliceout[key]:
-            print(f"Ranking file {path}", flush=True)
+            print(f"\t\tRanking file {path}", flush=True)
             fout_ranked[key].append(rf.rank_neighbors(data_all, path, path_ranked, n_neighbors))
     return fout_ranked
+
+
+def report_function_name():
+    """
+    Reports the name of the function that called this function
+    Out:
+        > string - (str) name of function that called
+    """
+    name_func = inspect.stack()[1][3]
+    name_module = inspect.stack()[1][1].split("/")[-1].strip(".py")
+    string = f"({name_module}.{name_func})"
+    return string

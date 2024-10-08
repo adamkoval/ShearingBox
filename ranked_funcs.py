@@ -33,10 +33,13 @@ def rank_neighbors(data_all, path_psliceout, path_ranked, n_neighbors):
     Out:
         > fout_ranked - (str) path to ranked file
     """
+    # Report function name
+    print(gf.report_function_name(), flush=True)
+
     # Checking existing ranked file
+    print("\tChecking if ranked file exists", flush=True)
     fstring = path_psliceout.split("/")[-1].strip(".dat")
     fout_ranked = f"{path_ranked}ranked_{n_neighbors}neigh_{fstring}.dat"
-    print(f"(ranked_funcs.rank_neighbors) Checking if ranked file exists", flush=True)
     if os.path.exists(fout_ranked):
         print(f"\t\tRanked file {fout_ranked} already exists. Skipping.", flush=True)
         return fout_ranked
@@ -45,36 +48,36 @@ def rank_neighbors(data_all, path_psliceout, path_ranked, n_neighbors):
         pass
 
     # Access data
-    print("(ranked_funcs.rank_neighbors) Accessing  data:", flush=True)
+    print("\t\t\tAccessing  data:", flush=True)
     start = time()
     particles = data_all[fstring]['raw_coords']
-    print(f"\t\t{time() - start} s.", flush=True)
+    print(f"\t\t\t\t{time() - start} s.", flush=True)
 
     # Construct the k-d tree
-    print("(ranked_funcs.rank_neighbors) Constructing k-d tree:", flush=True)
+    print("\t\t\tConstructing k-d tree:", flush=True)
     start = time()
     tree = cKDTree(particles)
-    print(f"\t\t{time() - start} s.", flush=True)
+    print(f"\t\t\t\t{time() - start} s.", flush=True)
 
-    print("(ranked_funcs.rank_neighbors) Querying k-d tree:", flush=True)
+    print("\t\t\tQuerying k-d tree:", flush=True)
     start = time()
     distances, indices = tree.query(particles, k=n_neighbors+1, workers=-1)  # +1 because the particle itself is included
-    print(f"\t\t{time() - start} s.", flush=True)
+    print(f"\t\t\t\t{time() - start} s.", flush=True)
 
     # Rank the particles by radius
-    print("(ranked_funcs.rank_neighbors) Ranking radii:", flush=True)
+    print("\t\t\tRanking radii:", flush=True)
     start = time()
     # The distances array contains distances to the nearest neighbors for each particle
     # The radius r for each particle is the distance to the n-th nearest neighbor (excluding the particle itself)
     radii = distances[:, -1]  # take the distance to the n-th nearest neighbor
     ranked_indices = np.argsort(radii)
-    print(f"\t\t{time() - start} s.", flush=True)
+    print(f"\t\t\t\t{time() - start} s.", flush=True)
 
     # Write to file
-    print("(ranked_funcs.rank_neighbors) Writing to file:", flush=True)
+    print("\t\t\tWriting to file:", flush=True)
     start = time()
     with open(fout_ranked, 'w+') as f:
         f.write(f"{'idx':10}\t{'radius':10}\t{'x':10}\t{'y':10}\t{'z':10}\n")
         [f.write(f"{idx+1:<10d}\t{radii[idx]:<10g}\t{particles[idx][0]:<10g}\t{particles[idx][1]:<10g}\t{particles[idx][2]:<10g}\n") for idx in ranked_indices]
-    print(f"\t\t{time() - start} s.", flush=True)
+    print(f"\t\t\t\t{time() - start} s.", flush=True)
     return fout_ranked
