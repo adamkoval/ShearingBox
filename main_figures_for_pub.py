@@ -8,8 +8,8 @@ import os
 # %%
 # Select desired figures
 print("Running setup operations", flush=True)
-# figs = ["Fig2_Fig4"]
-figs = ["Fig2_Fig4", "Fig6", "Fig7", "Fig8"]
+selected_figs = ["old"]
+# selected_figs = ["Fig2_Fig4", "Fig6", "Fig7", "Fig8"]
 
 # %%
 # Load paths
@@ -19,7 +19,7 @@ dict_paths = gf.load_paths_all(path_paths)
 # %%
 # Load data
 path_data = dict_paths["path_data"]
-paths_psliceout = gf.load_paths_psliceout(path_data, figs)
+paths_psliceout = gf.load_paths_psliceout(path_data, selected_figs)
 data_all = gf.iteratively_load_data(paths_psliceout)
 
 # %%
@@ -31,4 +31,6 @@ fout_ranked = gf.iteratively_rank_neighbors(data_all, paths_psliceout, path_rank
 # %%
 # Use ranked data to get COM coordinates
 print("Using ranked data to get COM coordinates", flush=True)
-data_ranked, coords_com_ranked = rf.get_com_coords(dict_paths["path_ranked"])
+for key in fout_ranked:
+    for fin_ranked in fout_ranked[key]:
+        data_ranked, coords_com_ranked = rf.get_com_coords(fin_ranked)
