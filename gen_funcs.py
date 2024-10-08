@@ -43,7 +43,7 @@ def load_paths_psliceout(path_data, selected_figs):
     """
     paths_psliceout = {}
     for fig in selected_figs:
-        paths_psliceout[fig] = [i for i in glob.glob(path_data + fig + "/*")]
+        paths_psliceout[fig] = glob.glob(path_data + fig + "/*.dat")
     return paths_psliceout
 
 
