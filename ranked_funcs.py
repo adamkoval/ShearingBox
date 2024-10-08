@@ -10,7 +10,7 @@ from time import time
 import gen_funcs as gf
 
 
-def get_com_coords(fin_ranked):
+def get_com_coords(fin_ranked, n_neighbors, threshold_rho):
     """
     Reads in ranked file and returns coordinates of centre-of-mass of clumps according to ranked
     In:
@@ -18,9 +18,26 @@ def get_com_coords(fin_ranked):
     Out:
         > com_coords - (arr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
     """
+    # Report function name
+    print(gf.report_function_name(), flush=True)
+
+    # Calculate threshold radius based on threshold density to reduce the search space
+    threshold_radius = (n_neighbors / threshold_rho * 3/4 * 1/np.pi)**1/3
+
+    # Access ranked and mask particles based on threshold radius
     ranked = pd.read_csv(fin_ranked, sep='\t', skiprows=1, names=["idx", "radius", "x", "y", "z"])
-    com = ranked.iloc[0]
-    com_coords = com[['x', 'y', 'z']].values
+    ranked_red = ranked[ranked['radius'] < threshold_radius]
+
+    # Find the centres of mass of disconnected clumps
+    com_coords = ranked_red[['x', 'y', 'z', 'radius']].values
+    # for idx in range(len(ranked)):
+    #     com = ranked.iloc[idx]
+    #     com_coords.append(com[['x', 'y', 'z']].values)
+        # if ranked.iloc[idx]['radius'] < threshold_radius:
+        #     com = ranked.iloc[0]
+        #     com_coords.append(com[['x', 'y', 'z']].values)
+        # else:
+        #     pass
     return ranked, com_coords
 
 
