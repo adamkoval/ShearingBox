@@ -3,42 +3,105 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import re
 
 from scipy.spatial import cKDTree
 from time import time
 
 import gen_funcs as gf
+import clump_funcs as cf
 
 
-def get_com_coords(fin_ranked, n_neighbors, threshold_rho):
+def read_ranked(fin_ranked, threshold_rho):
     """
-    Reads in ranked file and returns coordinates of centre-of-mass of clumps according to ranked
+    Reads in ranked file and returns data
     In:
         > fin_ranked - (str) path to ranked file
+        > threshold_rho - (flt) threshold density to reduce search space
     Out:
-        > com_coords - (arr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
+        > ranked_red - (arr) reduced ranked data
     """
     # Report function name
     print(gf.report_function_name(), flush=True)
 
+    # Access ranked
+    print(f"\tReading in and reducing ranked file {fin_ranked}", flush=True)
+    ranked = pd.read_csv(fin_ranked, sep='\t', skiprows=1, names=["idx", "radius", "x", "y", "z"])
+
     # Calculate threshold radius based on threshold density to reduce the search space
+    n_neighbors = int(re.search("([0-9]+)neigh", fin_ranked).group(1))
     threshold_radius = (n_neighbors / threshold_rho * 3/4 * 1/np.pi)**1/3
 
     # Access ranked and mask particles based on threshold radius
     ranked = pd.read_csv(fin_ranked, sep='\t', skiprows=1, names=["idx", "radius", "x", "y", "z"])
     ranked_red = ranked[ranked['radius'] < threshold_radius]
+    return ranked_red
+
+
+def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_radius, var_shell=False):
+    """
+    Reads in ranked file and returns coordinates of centre-of-mass of clumps according to ranked
+    In:
+        > data_ranked - (arr) ranked data
+        > dr - (flt) shell width (if var_shell=True then this sets the first shell width)
+        > n_shells - (int) number of shells
+        > raw_coords - (arr) xyz coordinates of all particles in slice
+        > raw_idx - (arr) indices of all particles in slice
+        > threshold_radius - (flt) threshold radius to reduce clump analysis to (NOT TO BE CONFUSED WITH threshold_radius IN rank_neighbors)
+        > var_shell - (bool) whether to vary shell width
+    Out:
+        > ranked - (arr) ranked data
+        > com_coords - (arr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
+    """
+    # Report function name
+    print(gf.report_function_name(), flush=True)
+
+    # Prepare the data for the iterative clump analysis
+    raw_coords_red = raw_coords
+    raw_idx_red = raw_idx
+    data_ranked_red = data_ranked
 
     # Find the centres of mass of disconnected clumps
-    com_coords = ranked_red[['x', 'y', 'z', 'radius']].values
-    # for idx in range(len(ranked)):
-    #     com = ranked.iloc[idx]
-    #     com_coords.append(com[['x', 'y', 'z']].values)
-        # if ranked.iloc[idx]['radius'] < threshold_radius:
-        #     com = ranked.iloc[0]
-        #     com_coords.append(com[['x', 'y', 'z']].values)
-        # else:
-        #     pass
-    return ranked, com_coords
+    print("\tFinding centres of mass of disconnected clumps", flush=True)
+    coords_com_all = []
+
+    # Iterate through the clumps
+    g = 0
+    while g < 20:
+        # Reporting
+        print(f"\t\tIterating through clump {g}", flush=True)
+
+        # Add the densest particle to list of COM coordinates
+        coords_com_curr = data_ranked_red[['x', 'y', 'z']].values[0]
+        coords_com_all.append(coords_com_curr) # Centre of mass of the densest clump
+
+        # Reduce the search space to a sphere of threshold_radius around the current densest clump
+        distances = np.sqrt((raw_coords_red[:, 0] - coords_com_curr[0])**2 + (raw_coords_red[:, 1] - coords_com_curr[1])**2 + (raw_coords_red[:, 2] - coords_com_curr[2])**2)
+        raw_coords_red = raw_coords_red[distances < threshold_radius]
+        raw_idx_red = raw_idx_red[distances < threshold_radius]
+        
+        # Now find the particles in the clump
+        clump_rad, clump_dens, numpart, distances, sorted_distances = cf.sort_distances(dr, n_shells, coords_com_curr, raw_coords_red, raw_idx_red, var_shell=False)
+        
+        # Get the Hill-sphere radii of shells from centre of clump outwards
+        Omega = 1
+        G = 1
+        R_Hs = np.array([cf.R_H(part * gf.m_swarm, Omega, G) for part in numpart])
+
+        # Find first shell where clump radius exceeds Hill radius
+        mask = clump_rad > R_Hs
+        indices = np.where(mask)[0]
+        if indices.size > 0:
+            idx_cross = indices[0]
+        
+        # Identify particle idxs in clump
+        sorted_indices = np.argsort(distances)
+        clump_indices = raw_idx_red[sorted_indices[:int(numpart[idx_cross])]]
+
+        # Remove the particles in the clump from the ranked data
+        data_ranked = data_ranked[~data_ranked['idx'].isin(clump_indices)]
+        g += 1
+    return coords_com_all
 
 
 def rank_neighbors(data_all, path_psliceout, path_ranked, n_neighbors):
