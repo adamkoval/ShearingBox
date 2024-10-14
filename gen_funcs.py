@@ -7,6 +7,7 @@ import os
 
 import ranked_funcs as rf
 
+m_swarm = 1.44e-5  # particle mass [code units]
 
 def load_paths_all(path_paths):
     """
@@ -130,3 +131,49 @@ def report_function_name():
     name_module = inspect.stack()[1][1].split("/")[-1].strip(".py")
     string = f"({name_module}.{name_func})"
     return string
+
+
+def read_figure_settings(fig_details_csv):
+    """
+    Reads in figure settings from a .csv file
+    In:
+        > fig_details_csv - (str) path to figure details .csv file
+    Out:
+        > fig_details - (df) dataframe containing figure details
+    """
+    details = pd.read_csv(fig_details_csv, sep=',', header=0)
+    return details
+
+
+class units:
+    def __init__(self, dust_gas_ratio, npart, code_box_size):
+        """
+        Class for unit conversion
+        In:
+            > dust_gas_ratio - (flt) dust-to-gas ratio
+            > npart - (int) number of particles
+            > code_box_size - (flt) size of simulation box in code units
+        """
+        # Mass conversion factors
+        self.m_gas_tot = 3.2e31 # [g]
+        self.dust_gas_ratio = dust_gas_ratio
+        self.npart = npart
+
+        # Length conversion factors
+        self.physical_box_size = 50.0 # [AU]
+        self.box_size = code_box_size
+
+
+    def convert_to_physical_units(self, value, which='mass_d'):
+        """
+        Converts from code units to physical units
+        In:
+            > value - (flt) value to convert. If unit is 'length', this will return the physical length in AU. If unit is either 'mass_d' or 'mass_g', 'value' must be the number of particles, and this function will return the physical mass in grams.
+            > which - (str) unit to convert to from either 'length', 'mass_d', or 'mass_g'
+        """
+        units = {
+            'length': self.physical_box_size / self.box_size,
+            'mass_d': self.m_gas_tot * self.dust_gas_ratio / self.npart,
+            'mass_g': self.m_gas_tot * (1-self.dust_gas_ratio) / self.npart
+            }
+        return value*units[which]
