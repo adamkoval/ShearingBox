@@ -19,7 +19,8 @@ def read_ranked(fin_ranked, threshold_rho):
         > fin_ranked - (str) path to ranked file
         > threshold_rho - (flt) threshold density to reduce search space
     Out:
-        > ranked_red - (arr) reduced ranked data
+        > ranked_red - (df) reduced ranked data
+        > ranked - (df) ranked data
     """
     # Report function name
     print(gf.report_function_name(), flush=True)
@@ -35,23 +36,23 @@ def read_ranked(fin_ranked, threshold_rho):
     # Access ranked and mask particles based on threshold radius
     ranked = pd.read_csv(fin_ranked, sep='\t', skiprows=1, names=["idx", "radius", "x", "y", "z"])
     ranked_red = ranked[ranked['radius'] < threshold_radius]
-    return ranked_red
+    return ranked_red, ranked
 
 
 def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_radius, var_shell=False):
     """
     Reads in ranked file and returns coordinates of centre-of-mass of clumps according to ranked
     In:
-        > data_ranked - (arr) ranked data
+        > data_ranked - (df) ranked data
         > dr - (flt) shell width (if var_shell=True then this sets the first shell width)
         > n_shells - (int) number of shells
-        > raw_coords - (arr) xyz coordinates of all particles in slice
-        > raw_idx - (arr) indices of all particles in slice
+        > raw_coords - (NParr) xyz coordinates of all particles in slice
+        > raw_idx - (NParr) indices of all particles in slice
         > threshold_radius - (flt) threshold radius to reduce clump analysis to (NOT TO BE CONFUSED WITH threshold_radius IN rank_neighbors)
         > var_shell - (bool) whether to vary shell width
     Out:
-        > ranked - (arr) ranked data
-        > com_coords - (arr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
+        > coords_com_all - (NParr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
+        > clump_indices - (NParr) indices of particles in clump
     """
     # Report function name
     print(gf.report_function_name(), flush=True)
@@ -61,27 +62,31 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
     raw_idx_red = raw_idx
     data_ranked_red = data_ranked
 
-    # Find the centres of mass of disconnected clumps
-    print("\tFinding centres of mass of disconnected clumps", flush=True)
-    coords_com_all = []
-
-    # Iterate through the clumps
+    # Iteratively find the centres of mass of disconnected clumps
+    print(f"\tFinding centres of mass of disconnected clumps (threshold radius:  {threshold_radius})", flush=True)
+    coords_com_all = {key: [] for key in data_ranked_red.keys()}
+    idxs_clump = []
     g = 0
-    while g < 20:
-        # Reporting
-        print(f"\t\tIterating through clump {g}", flush=True)
-
+    while True:
         # Add the densest particle to list of COM coordinates
         coords_com_curr = data_ranked_red[['x', 'y', 'z']].values[0]
-        coords_com_all.append(coords_com_curr) # Centre of mass of the densest clump
+        [coords_com_all[key].append(data_ranked_red[key].values[0]) for key in coords_com_all.keys()]
+        print(f"\n\t\t\tCOM of clump {g}: {coords_com_curr}", flush=True)
 
         # Reduce the search space to a sphere of threshold_radius around the current densest clump
-        distances = np.sqrt((raw_coords_red[:, 0] - coords_com_curr[0])**2 + (raw_coords_red[:, 1] - coords_com_curr[1])**2 + (raw_coords_red[:, 2] - coords_com_curr[2])**2)
-        raw_coords_red = raw_coords_red[distances < threshold_radius]
-        raw_idx_red = raw_idx_red[distances < threshold_radius]
+        distances_to_com = np.sqrt((raw_coords_red[:, 0] - coords_com_curr[0])**2 + (raw_coords_red[:, 1] - coords_com_curr[1])**2 + (raw_coords_red[:, 2] - coords_com_curr[2])**2)
+        print(f"\t\t\tNumber of particles in raw search space: {len(raw_coords_red)}", flush=True)
+        print(f"\t\t\tMinimum distance to COM: {np.min(distances_to_com)}", flush=True)
+        raw_coords_red = raw_coords_red[distances_to_com < threshold_radius]
+        raw_idx_red = raw_idx_red[distances_to_com < threshold_radius]
+        print(f"\t\t\tNumber of particles in reduced search space: {len(raw_coords_red)}", flush=True)
+        if len(raw_coords_red) == 0:
+            print(f"\t\t\tNo more particles in search space. Exiting.", flush=True)
+            break
         
         # Now find the particles in the clump
         clump_rad, clump_dens, numpart, distances, sorted_distances = cf.sort_distances(dr, n_shells, coords_com_curr, raw_coords_red, raw_idx_red, var_shell=False)
+        print(f"\t\t\tNumber of particles in preclump: {numpart[-1]}", flush=True)
         
         # Get the Hill-sphere radii of shells from centre of clump outwards
         Omega = 1
@@ -91,17 +96,26 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
         # Find first shell where clump radius exceeds Hill radius
         mask = clump_rad > R_Hs
         indices = np.where(mask)[0]
+        print(f"\t\t\tIndices: {indices[:3]}", flush=True)
         if indices.size > 0:
-            idx_cross = indices[0]
+            shelli_cross = indices[0]
+        print(f"\t\t\tCrossing point: {shelli_cross}", flush=True)
         
         # Identify particle idxs in clump
         sorted_indices = np.argsort(distances)
-        clump_indices = raw_idx_red[sorted_indices[:int(numpart[idx_cross])]]
+        clump_indices = raw_idx_red[sorted_indices[:int(numpart[shelli_cross])]]
+        print(f"\t\t\tNumber of particles in postclump: {numpart[shelli_cross]}", flush=True)
+        if numpart[-1] == numpart[shelli_cross]:
+            print(f"WARNING: All particles in search space are in clump. Adjust your shell parameters. Exiting.", flush=True)
+            break
 
         # Remove the particles in the clump from the ranked data
-        data_ranked = data_ranked[~data_ranked['idx'].isin(clump_indices)]
+        # assert data_ranked['idx'][1] in clump_indices
+        data_ranked_red = data_ranked_red[~data_ranked_red['idx'].isin(clump_indices)]
+        print(f"\t\t\tNumber of particles in ranked data at the end: {len(data_ranked_red)}", flush=True)
+        idxs_clump.append(clump_indices)
         g += 1
-    return coords_com_all
+    return coords_com_all, idxs_clump
 
 
 def rank_neighbors(data_all, path_psliceout, path_ranked, n_neighbors):

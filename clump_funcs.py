@@ -49,8 +49,9 @@ def sort_distances(dr, n_shells, com_coords, raw_coords, raw_idx, var_shell=True
     In:
         > dr - (float) shell width (or zeroth radius for variable shells)
         > n_shells - (int) number of shells
-        > com_coords - (arr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
-        > raw_coords - (arr) xyz coordinates of all particles in slice
+        > com_coords - (NParr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
+        > raw_coords - (NParr) xyz coordinates of all particles in slice
+        > raw_idx - (NParr) indices of all particles in slice
         > var_shell - (BOOL) turn on/off variable shell width
     Out:
         > clump_rad - (NParr) list of shell radii
@@ -89,13 +90,13 @@ def var_r(n_shells, R0):
     return cump_rad
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def compute_com_densities(com_coords, raw_coords, clump_rad, dr):
     """
     Computes the radial distances of coords from com and returns an ordered array
     In:
-        > com_coords - (arr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
-        > raw_coords - (arr) xyz coordinates of all particles in slice
+        > com_coords - (NParr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
+        > raw_coords - (NParr) xyz coordinates of all particles in slice
         > clump_rad - (arr) radii delimiting spherical shells for integration
         > dr - (float) shell width (or zeroth radius for variable shells)
     Out:

@@ -87,7 +87,7 @@ def load_psliceout(path_psliceout):
             raw_sizes: sizes of all particles in slice
             raw_idx: indices of all particles in slice
     """
-    raw = pd.read_csv(path_psliceout, sep='\s+', index_col=0, names=['x', 'y', 'z', 'vx', 'vy', 'vz', 'size'], header=None)
+    raw = pd.read_csv(path_psliceout, sep='\s+', index_col=0, names=['x', 'y', 'z', 'vx', 'vy', 'vz', 'size'], header=None).sort_index()
     raw_coords = raw[['x', 'y', 'z']].values
     raw_vels = raw[['vx', 'vy', 'vz']].values
     raw_sizes = raw[['size']].values
