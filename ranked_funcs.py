@@ -66,6 +66,7 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
     print(f"\tFinding centres of mass of disconnected clumps (threshold radius:  {threshold_radius})", flush=True)
     coords_com_all = {key: [] for key in data_ranked_red.keys()}
     idxs_clump = []
+    R_Hs_final = []
     g = 0
     while True:
         # Add the densest particle to list of COM coordinates
@@ -100,6 +101,7 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
         if indices.size > 0:
             shelli_cross = indices[0]
         print(f"\t\t\tCrossing point: {shelli_cross}", flush=True)
+        R_Hs_final.append(R_Hs[shelli_cross])
         
         # Identify particle idxs in clump
         sorted_indices = np.argsort(distances)
@@ -115,7 +117,7 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
         print(f"\t\t\tNumber of particles in ranked data at the end: {len(data_ranked_red)}", flush=True)
         idxs_clump.append(clump_indices)
         g += 1
-    return coords_com_all, idxs_clump
+    return coords_com_all, idxs_clump, R_Hs_final
 
 
 def rank_neighbors(data_all, path_psliceout, path_ranked, n_neighbors):
