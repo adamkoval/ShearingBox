@@ -9,7 +9,8 @@ import gen_funcs as gf
 
 class PlotDustSurfdensEff:
     """
-    Class to control the plotting of all the Accepts either a path to psliecout file or dct containing the data.
+    Class to control the plotting of all the 
+    Accepts either a path to psliecout file or dct containing the data.
     In:
         > data - (dct) dictionary containing the data
         > COMs - (dct) dictionary containing the COMs
