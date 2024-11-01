@@ -208,6 +208,10 @@ def iteratively_plot_figures(selected_figs, paths_psliceout, n_neighbors, data_a
             plot_inst.plot_surfdens(save=True, show=False)
 
 
+# def iteratively_plot_figures_2():
+#     fig_details = pd.read_csv("fig_details.csv", sep=',', header=0)
+
+
 # HELPER FUNCS
 def check_paths(config):
     """
