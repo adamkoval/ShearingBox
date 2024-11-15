@@ -70,7 +70,11 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
     g = 0
     while g<20:
         # Add the densest particle to list of COM coordinates
-        coords_com_curr = data_ranked_rem[['x', 'y', 'z']].values[0]
+        try:
+            coords_com_curr = data_ranked_rem[['x', 'y', 'z']].values[0]
+        except IndexError:
+            print(f"\t\t\tNo COM satisfying reduction condition. Exiting.", flush=True)
+            return np.empty(1), np.empty(1), np.empty(1)
         [coords_com_all[key].append(data_ranked_rem[key].values[0]) for key in coords_com_all.keys()]
         print(f"\n\t\t\tCOM of clump {g}: {coords_com_curr}", flush=True)
 
@@ -122,11 +126,12 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
     return coords_com_all, idxs_clump, R_Hs_final
 
 
-def rank_neighbors(data_all, path_psliceout, path_ranked, n_neighbors):
+def rank_neighbors(data, path_psliceout, path_ranked, n_neighbors):
     """
     Reads in PENCIL slice data file and writes a ranked file based on the n-th nearest neighbor
     In:
         > path_psliceout - (str) path to psliceout file
+        > path_ranked - (str) path to ranked directory
         > n_neighbors - (int) number of nearest neighbors to find
     Out:
         > fout_ranked - (str) path to ranked file
@@ -148,7 +153,7 @@ def rank_neighbors(data_all, path_psliceout, path_ranked, n_neighbors):
     # Access data
     print("\t\t\tAccessing  data:", flush=True)
     start = time()
-    particles = data_all[fstring]['raw_coords']
+    particles = data['raw_coords']
     print(f"\t\t\t\t{time() - start} s.", flush=True)
 
     # Construct the k-d tree
