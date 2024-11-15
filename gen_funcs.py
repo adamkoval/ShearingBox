@@ -12,7 +12,7 @@ import plot_funcs as pf
 
 m_swarm = 1.44e-5  # particle mass [code units]
 
-# READ FUNCTIONS
+# READ/WRITE FUNCTIONS
 def read_config(path_config):
     """
     Reads in physics.json file
@@ -128,7 +128,8 @@ def iteratively_rank_neighbors(data_all, paths_psliceout, path_ranked, n_neighbo
         fout_ranked[key] = []
         for path in paths_psliceout[key]:
             print(f"\t\tRanking file {path}", flush=True)
-            fout_ranked[key].append(rf.rank_neighbors(data_all, path, path_ranked, n_neighbors))
+            fstring = path.split("/")[-1].strip(".dat")
+            fout_ranked[key].append(rf.rank_neighbors(data_all[fstring], path, path_ranked, n_neighbors))
     return fout_ranked
 
 
