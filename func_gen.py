@@ -6,9 +6,9 @@ import json
 import os
 import re
 
-import ranked_funcs as rf
-import clump_funcs as cf
-import plot_funcs as pf
+import func_ranked as rf
+import func_clump as cf
+import func_plot as pf
 
 m_swarm = 1.44e-5  # particle mass [code units]
 

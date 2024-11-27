@@ -4,7 +4,7 @@ import pandas as pd
 
 from numba import jit
 
-import gen_funcs as gf
+import func_gen as gf
 
 
 def calculate_density_Roche(G, Omega_K, H_g):

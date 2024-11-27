@@ -1,9 +1,9 @@
 #!/home/akoval/miniconda3/envs/python3.11_conda_env/bin/python
 # SCRIPT TO ANALYSE CLUMPS IN SINGLE FIGURE
-import gen_funcs as gf
-import ranked_funcs as rf
-import clump_funcs as cf
-import plot_funcs as pf
+import func_gen as gf
+import func_ranked as rf
+import func_clump as cf
+import func_plot as pf
 
 import os
 import numpy as np
@@ -27,7 +27,7 @@ fin = "data/Fig8/pslice15_dm1e-2_St10-100.dat"
 data = gf.load_psliceout(fin)
 
 # Rank neighbours
-fout_ranked = rf.rank_neighbors(data, fin, "output/ranked/", 100)
+fout_ranked = rf.rank_neighbors(data, fin, "output/ranked/", 1000)
 
 # Find clumps
 # Calculate Roche density as threshold

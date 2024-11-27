@@ -5,7 +5,7 @@ import pandas as pd
 from scipy import ndimage
 from argparse import ArgumentParser
 
-import gen_funcs as gf
+import func_gen as gf
 
 class PlotDustSurfdensEff:
     def __init__(self, fin, data, COMs, R_Hs, n_neighbors, res=500):

@@ -8,8 +8,8 @@ import re
 from scipy.spatial import cKDTree
 from time import time
 
-import gen_funcs as gf
-import clump_funcs as cf
+import func_gen as gf
+import func_clump as cf
 
 
 def read_ranked(fin_ranked, threshold_rho):

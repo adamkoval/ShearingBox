@@ -1,10 +1,10 @@
 #!/home/akoval/miniconda3/envs/python3.11_conda_env/bin/python
 # MAIN SCRIPT FOR GENERATING FIGURES FOR PUBLICATION
 # %%
-import gen_funcs as gf
-import ranked_funcs as rf
-import clump_funcs as cf
-import plot_funcs as pf
+import func_gen as gf
+import func_ranked as rf
+import func_clump as cf
+import func_plot as pf
 
 import os
 import numpy as np
