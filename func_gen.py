@@ -6,6 +6,8 @@ import json
 import os
 import re
 
+import numpy as np
+
 import func_ranked as rf
 import func_clump as cf
 import func_plot as pf
@@ -99,20 +101,26 @@ def write_coords_com_rankedf(coords_com_rankedf, outdir):
 
     # Enter main loop
     for _fin_ranked in coords_com_rankedf:
-        coords_coms = coords_com_rankedf[_fin_ranked]['coords_com']
-        for i_clump in range(len(coords_coms)):
-            fout = outdir_coords_com + _fin_ranked + "_clump_" + i_clump + ".dat"
+        # Obtain all com data from that file
+        data_coms = coords_com_rankedf[_fin_ranked]['data_com']
+
+        # Iterate through clumps
+        for i_clump in range(len(data_coms['idx'])):
+            fout = outdir_coords_com + _fin_ranked + "_clump_" + str(i_clump) + ".dat"
             if os.path.exists(fout):
                 print(f"\tFile {fout} exists, skipping.", flush=True)
                 pass
             else:
                 print(f"\tWriting clump data to file {fout}.", flush=True)
-                coords_com = coords_coms[i_clump]
+                coords_com = np.hstack((data_coms['x'][i_clump],
+                                        data_coms['y'][i_clump],
+                                        data_coms['z'][i_clump]))
+                idx_com = data_coms['idx'][i_clump]
                 R_H = coords_com_rankedf[_fin_ranked]['R_Hs'][i_clump]
                 idxs_clump = coords_com_rankedf[_fin_ranked]['idxs_clumps'][i_clump]
                 with open(fout, 'w') as f:
-                    f.write(f"coords_com = {coords_com}, R_H = {R_H}, idxs_clump =\n")
-                    np.savetxt(f, idxs_clump)
+                    f.write(f"idx_com = {idx_com}\ncoords_com = {coords_com}\nR_H = {R_H}\nidxs_clump =\n")
+                    np.savetxt(f, idxs_clump, fmt='%i')
                     
 
 # ITERATIVE FUNCTIONS
@@ -224,7 +232,7 @@ def iteratively_delimit_clumps(config, fout_ranked, data_all):
 
                 # Save data
                 data_rankedf[_fin_ranked] = _data_ranked_red
-                coords_com_rankedf[_fin_ranked] = {"coords_com": _coords_com_ranked, "idxs_clumps": idxs_clumps, "R_Hs": R_Hs_final}
+                coords_com_rankedf[_fin_ranked] = {"data_com": _coords_com_ranked, "idxs_clumps": idxs_clumps, "R_Hs": R_Hs_final}
     return coords_com_rankedf
 
 
@@ -241,7 +249,7 @@ def iteratively_plot_figures(selected_figs, paths_psliceout, n_neighbors, data_a
         for fin in paths_psliceout[fig]:
             _fin = fin.split("/")[-1].strip(".dat")
             _rfin = f"ranked_{n_neighbors}neigh_{_fin}"
-            plot_inst = pf.PlotDustSurfdensEff(_fin, data_all[_fin], coords_com_rankedf[_rfin]['coords_com'], coords_com_rankedf[_rfin]['R_Hs'], n_neighbors)
+            plot_inst = pf.PlotDustSurfdensEff(_fin, data_all[_fin], coords_com_rankedf[_rfin]['data_com'], coords_com_rankedf[_rfin]['R_Hs'], n_neighbors)
             plot_inst.plot_surfdens(save=True, show=False)
 
 

@@ -38,6 +38,7 @@ fout_ranked = gf.iteratively_rank_neighbors(data_all, paths_psliceout, path_rank
 # %%
 # Find clumps
 coords_com_rankedf = gf.iteratively_delimit_clumps(config, fout_ranked, data_all)
+gf.write_coords_com_rankedf(coords_com_rankedf, config["path_out"])
 
 # %%
 # Plotting
