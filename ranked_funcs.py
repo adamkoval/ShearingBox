@@ -104,6 +104,7 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
         if indices.size > 0:
             shelli_cross = indices[0]
         print(f"\t\t\tCrossing point: {shelli_cross}", flush=True)
+        print(f"\t\t\tHill Radius: {R_Hs[shelli_cross]}", flush=True)
         R_Hs_final.append(R_Hs[shelli_cross])
         
         # Identify particle idxs in clump
