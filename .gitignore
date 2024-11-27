@@ -1,6 +1,13 @@
 # Directories
-data/*
-images_from_cuillin
+data/
+images_from_cuillin/
+find_clumps/
+old_analyses/
+output/
+plot_surfdens/
+plot_vel_disp/
+rank_neighbours/
+calc_clump_mass/
 
 # Files
 *.pdf
