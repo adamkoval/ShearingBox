@@ -81,6 +81,40 @@ def load_psliceout(path_psliceout):
     return data
 
 
+def write_coords_com_rankedf(coords_com_rankedf, outdir):
+    """
+    Writes coords_com_rankedf into a file
+    In:
+        > coords_com_rankedf - (dct) dictionary containing COM coordinates, indices of members, and Hill radii of clumps for all ranked files
+        > outdir - (str) output dir (as given in config file)
+    """
+    # Report function name
+    print(report_function_name(), flush=True)
+
+    # Check for/create output dir
+    outdir_coords_com = outdir.strip('/') + '/' + 'com_data/'
+    if not os.path.exists(outdir_coords_com):
+        print(f"\tCreating directory {outdir_coords_com}", flush=True)
+        os.makedirs(outdir_coords_com)
+
+    # Enter main loop
+    for _fin_ranked in coords_com_rankedf:
+        coords_coms = coords_com_rankedf[_fin_ranked]['coords_com']
+        for i_clump in range(len(coords_coms)):
+            fout = outdir_coords_com + _fin_ranked + "_clump_" + i_clump + ".dat"
+            if os.path.exists(fout):
+                print(f"\tFile {fout} exists, skipping.", flush=True)
+                pass
+            else:
+                print(f"\tWriting clump data to file {fout}.", flush=True)
+                coords_com = coords_coms[i_clump]
+                R_H = coords_com_rankedf[_fin_ranked]['R_Hs'][i_clump]
+                idxs_clump = coords_com_rankedf[_fin_ranked]['idxs_clumps'][i_clump]
+                with open(fout, 'w') as f:
+                    f.write(f"coords_com = {coords_com}, R_H = {R_H}, idxs_clump =\n")
+                    np.savetxt(f, idxs_clump)
+                    
+
 # ITERATIVE FUNCTIONS
 def iteratively_load_data(paths_psliceout):
     """
@@ -183,14 +217,14 @@ def iteratively_delimit_clumps(config, fout_ranked, data_all):
                 _data_ranked_red, _data_ranked = rf.read_ranked(fin_ranked, threshold_rho)
 
                 # Get COM coordinates
-                _coords_com_ranked, idxs_clump, R_Hs_final = rf.get_com_coords(_data_ranked_red, dr, n_shells, raw_coords, raw_idx, threshold_radius, var_shell=False)
+                _coords_com_ranked, idxs_clumps, R_Hs_final = rf.get_com_coords(_data_ranked_red, dr, n_shells, raw_coords, raw_idx, threshold_radius, var_shell=False)
 
                 # Remove the final "clump" since it would have been empty
                 _coords_com_ranked = {key: _coords_com_ranked[key][:-1] for key in _coords_com_ranked}
 
                 # Save data
                 data_rankedf[_fin_ranked] = _data_ranked_red
-                coords_com_rankedf[_fin_ranked] = {"coords_com": _coords_com_ranked, "idxs_clump": idxs_clump, "R_Hs": R_Hs_final}
+                coords_com_rankedf[_fin_ranked] = {"coords_com": _coords_com_ranked, "idxs_clumps": idxs_clumps, "R_Hs": R_Hs_final}
     return coords_com_rankedf
 
 
