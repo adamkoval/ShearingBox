@@ -15,11 +15,11 @@ m_swarm = 1.44e-5  # particle mass [code units]
 # READ/WRITE FUNCTIONS
 def read_config(path_config):
     """
-    Reads in physics.json file
+    Reads in config.json file
     In:
-        > path_physics - (str) path to physics.json file
+        > path_config - (str) path to config.json file
     Out:
-        > dict_physics - (dct) dictionary containing physics parameters
+        > dict_config - (dct) dictionary containing config parameters
     """
     # Report function name
     print(report_function_name(), flush=True)
@@ -28,6 +28,8 @@ def read_config(path_config):
     print("\tReading config", flush=True)
     with open(path_config, "r") as f:
         dict_config = json.load(f)
+    print(f"\t\tConfig file pertains to:", flush=True)
+    [print(f"\t\t\t{key} = {dict_config[key]}") for key in dict_config]
     return dict_config
 
 
@@ -205,7 +207,7 @@ def iteratively_plot_figures(selected_figs, paths_psliceout, n_neighbors, data_a
         for fin in paths_psliceout[fig]:
             _fin = fin.split("/")[-1].strip(".dat")
             _rfin = f"ranked_{n_neighbors}neigh_{_fin}"
-            plot_inst = pf.PlotDustSurfdensEff(_fin, data_all[_fin], coords_com_rankedf[_rfin]['coords_com'], coords_com_rankedf[_rfin]['R_Hs'])
+            plot_inst = pf.PlotDustSurfdensEff(_fin, data_all[_fin], coords_com_rankedf[_rfin]['coords_com'], coords_com_rankedf[_rfin]['R_Hs'], n_neighbors)
             plot_inst.plot_surfdens(save=True, show=False)
 
 
