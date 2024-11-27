@@ -8,15 +8,16 @@ from argparse import ArgumentParser
 import gen_funcs as gf
 
 class PlotDustSurfdensEff:
-    """
-    Class to control the plotting of all the 
-    Accepts either a path to psliecout file or dct containing the data.
-    In:
-        > data - (dct) dictionary containing the data
-        > COMs - (dct) dictionary containing the COMs
-        > R_Hs - (dct) dictionary containing the Hill radii of COMs
-    """
-    def __init__(self, fin, data, COMs, R_Hs, res=500):
+    def __init__(self, fin, data, COMs, R_Hs, n_neighbors, res=500):
+        """
+        Class to control the plotting of all the 
+        Accepts either a path to psliecout file or dct containing the data.
+        In:
+            > data - (dct) dictionary containing the data
+            > COMs - (dct) dictionary containing the COMs
+            > R_Hs - (dct) dictionary containing the Hill radii of COMs
+            > n_neighbor - (int) number of neighbors used in kD search
+        """
         # Report function name
         print(gf.report_function_name(), flush=True)
         print(f"\tPlotting dust surface density for {fin}", flush=True)
@@ -25,6 +26,7 @@ class PlotDustSurfdensEff:
         self.data = data
         self.COMs = COMs
         self.R_Hs = R_Hs
+        self.N = n_neighbors
         self.fin = fin
         self.res = res
         self.surfdens = np.zeros((self.res, self.res))
@@ -80,6 +82,6 @@ class PlotDustSurfdensEff:
         self.ax.set_ylabel('x')
         self.ax.set_title(self.fin)
         if save:
-            plt.savefig(f"output/surfdensplots/surfdens_{self.fin}.pdf", format='pdf')
+            plt.savefig(f"output/surfdensplots/surfdens_{self.N}nigh_{self.fin}.pdf", format='pdf')
         if show:
             plt.show()
