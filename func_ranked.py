@@ -51,7 +51,7 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
         > threshold_radius - (flt) threshold radius to reduce clump analysis to (NOT TO BE CONFUSED WITH threshold_radius IN rank_neighbors)
         > var_shell - (bool) whether to vary shell width
     Out:
-        > coords_com_all - (NParr) xyz coordinates of centre-of-mass of clump (currently just for one COM)
+        > data_com_all - (NParr) data for COMs from ranked file. Keys are: 'idx', 'radius', 'x', 'y', 'z'
         > clump_indices - (NParr) indices of particles in clump
     """
     # Report function name
@@ -64,8 +64,8 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
 
     # Iteratively find the centres of mass of disconnected clumps
     print(f"\tFinding centres of mass of disconnected clumps (threshold radius:  {threshold_radius})", flush=True)
-    coords_com_all = {key: [] for key in data_ranked_rem.keys()}
-    idxs_clump = []
+    data_com_all = {key: [] for key in data_ranked_rem.keys()}
+    idxs_clumps = []
     R_Hs_final = []
     g = 0
     while g<20:
@@ -75,7 +75,7 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
         except IndexError:
             print(f"\t\t\tNo COM satisfying reduction condition. Exiting.", flush=True)
             return np.empty(1), np.empty(1), np.empty(1)
-        [coords_com_all[key].append(data_ranked_rem[key].values[0]) for key in coords_com_all.keys()]
+        [data_com_all[key].append(data_ranked_rem[key].values[0]) for key in data_com_all.keys()]
         print(f"\n\t\t\tCOM of clump {g}: {coords_com_curr}", flush=True)
 
         # Reduce the search space to a sphere of threshold_radius around the current densest clump
@@ -122,9 +122,9 @@ def get_com_coords(data_ranked, dr, n_shells, raw_coords, raw_idx, threshold_rad
         raw_idx_rem = raw_idx_rem[~np.isin(raw_idx_rem, clump_indices)]
 
         # Append the indices of the clump to the list
-        idxs_clump.append(clump_indices)
+        idxs_clumps.append(clump_indices)
         g += 1
-    return coords_com_all, idxs_clump, R_Hs_final
+    return data_com_all, idxs_clumps, R_Hs_final
 
 
 def rank_neighbors(data, path_psliceout, path_ranked, n_neighbors):
