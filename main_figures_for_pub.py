@@ -1,3 +1,4 @@
+#!/home/akoval/miniconda3/envs/python3.11_conda_env/bin/python
 # MAIN SCRIPT FOR GENERATING FIGURES FOR PUBLICATION
 # %%
 import gen_funcs as gf
