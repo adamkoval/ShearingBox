@@ -19,3 +19,6 @@ slurm-*
 run_log
 __pycache__
 .DS_Store
+
+# User-created files
+config.json
