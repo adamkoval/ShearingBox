@@ -5,6 +5,24 @@ from numba import jit
 
 m_part = 1.44e-5 # particle mass [code units]
 
+
+def read_com_data(fin_com_data):
+    """
+    Reads in singular data file for each clump and returns the relevant data
+    """
+    dct = {}
+    with open(fin_com_data, 'r') as f:
+        for line in f:
+            if "idxs_clump" not in line:
+                dct[line.split('=')[0].strip()] = line.split('=')[1].strip()
+            else:
+                break
+    dct['idx_com'] = int(dct['idx_com'])
+    dct['coords_com'] = [float(i) for i in dct['coords_com'][1:-1].split()]
+    dct['R_H'] = float(dct['R_H'])
+    dct['idxs_clump'] = np.loadtxt(fin_com_data, skiprows=4, dtype=int)
+    return dct
+
 def get_com_coords(fin_ranked):
     """
     Reads in ranked file and returns coordinates of centre-of-mass of clumps according to ranked
